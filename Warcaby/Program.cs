@@ -1,4 +1,6 @@
-﻿namespace Warcaby
+﻿using System.Text.RegularExpressions;
+
+namespace Warcaby
 {
     internal class Program
     {
@@ -58,31 +60,77 @@
             Console.WriteLine("    ---------------");
         }
 
-
-        static void playerTurn(int turn)
+        static bool isValidMove(int player, int[] pieceCoords, int[] moveCoords)
         {
-            if (turn == 1)
-                Console.WriteLine("Tura: **BIAŁY** (Pionek: B)");
-            else if (turn == 2)
-                Console.WriteLine("Tura: **CZARNY** (Pionek: C)");
+            switch(player)
+            {
+                //biały
+                case 1:
+                    if (!((pieceCoords[1] == moveCoords[1] + 1 || pieceCoords[1] == moveCoords[1] - 1) && pieceCoords[0] == moveCoords[0] + 1))
+                    {
+                        Console.WriteLine("Niepoprawny ruch");
+                        return false;
+                    }
+                    break;
+                //czarny
+                case 2:
+                    if (!((pieceCoords[1] == moveCoords[1] + 1 || pieceCoords[1] == moveCoords[1] - 1) && pieceCoords[0] == moveCoords[0] - 1))
+                    {
+                        Console.WriteLine("Niepoprawny ruch");
+                        return false;
+                    }
+                    break;
+            }
 
-            Console.WriteLine("Wpisz ruch (np. 5,0 na 4,1): ");
-
+            if(board[pieceCoords[0], pieceCoords[1]] != player)
+            {
+                Console.WriteLine("Niepoprawny ruch (nie twój pionek)");
+                return false;
+            }
+            return true;
         }
 
-        static void gameLoop()
+        static void playerTurn(int player, int[] pieceCoords, int[] moveCoords)
         {
-            int turn = 1; // 1 - biały 2 - czarny
+            if(!isValidMove(player, pieceCoords, moveCoords)) return;
+            board[pieceCoords[0], pieceCoords[1]] = 0;
+            board[moveCoords[0], moveCoords[1]] = player;
+            Console.Clear();
+            displayBoard();
+        }
+
+
+        static void Main(string[] args)
+        {
+            int player = 1; // 1 - biały 2 - czarny
+            bool gameOver = false;
+            Regex inputPattern = new Regex("([0-7]),([0-7]) na ([0-7]),([0-7])$");
             initializeBoard();
             displayBoard();
 
 
-        }
-        static void Main(string[] args)
-        {
-            //initializeBoard();
-            //displayBoard();
-            gameLoop();
+            while(!gameOver)
+            {
+                if (player == 1)
+                    Console.WriteLine("Tura: **BIAŁY** (Pionek: B)");
+                else if (player == 2)
+                    Console.WriteLine("Tura: **CZARNY** (Pionek: C)");
+
+                Console.Write("Wpisz ruch (np. 5,0 na 4,1): ");
+                string input = Console.ReadLine().Trim();
+                while (!inputPattern.IsMatch(input))
+                {
+                    Console.WriteLine("Niepoprawny ruch");
+                    Console.Write("Wpisz ruch (np. 5,0 na 4,1): ");
+                    input = Console.ReadLine().Trim();
+                }
+                int[] pieceCoords = { input[0] - '0', input[2] - '0' };
+                int[] moveCoords = { input[7] - '0', input[9] - '0' };
+
+                playerTurn(player, pieceCoords, moveCoords);
+
+                player = (player == 1) ? 2 : 1;
+            }
         }
     }
 }
