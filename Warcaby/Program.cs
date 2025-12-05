@@ -60,7 +60,7 @@ namespace Warcaby
             Console.WriteLine("    ---------------");
         }
 
-        static bool isValidMove(int player, int[] pieceCoords, int[] moveCoords)
+        static bool isValidMove(int player, int[] pieceCoords, int[] moveCoords, bool isCapture)
         {
             switch(player)
             {
@@ -82,7 +82,47 @@ namespace Warcaby
                     }
                     break;
             }
+            if(!isCapture)
+            {
+                if (board[pieceCoords[0], pieceCoords[1]] != player)
+                {
+                    Console.WriteLine("Niepoprawny ruch (nie twój pionek)");
+                    return false;
+                }
+            }
             return true;
+        }
+
+        static bool isValidCapture(int player, int[] pieceCoords, int[] moveCoords)
+        {
+            int enemyPlayer = (player == 1) ? 2 : 1;
+            switch (player)
+            {
+                case 1:
+                    //Console.WriteLine((moveCoords[0] + 1) + "" + (moveCoords[1] + 1));
+                    //Console.WriteLine((moveCoords[0] + 1) + "" + (moveCoords[1] - 1));
+                    //return false;
+                    if (board[moveCoords[0] + 1, moveCoords[1] + 1] == enemyPlayer || board[moveCoords[0] + 1, moveCoords[1] - 1] == enemyPlayer)
+                    {
+                        return true;
+                    }
+                    break;
+                case 2:
+                    Console.WriteLine("asd");
+                    Console.WriteLine((moveCoords[0] - 1) + " " + (moveCoords[1] + 1));
+                    Console.WriteLine((moveCoords[0] - 1) + " " + (moveCoords[1] - 1));
+                    //return false;
+                    bool enemyOnRight = board[moveCoords[0] - 1, moveCoords[1] + 1] == enemyPlayer;
+                    bool enemyOnLeft = board[moveCoords[0] - 1, moveCoords[1] - 1] == enemyPlayer;
+                    if (enemyOnRight || enemyOnLeft)
+                    {
+                        int[] tempPieceCoords = { pieceCoords[0] - 1, pieceCoords[1] + 1 };
+                        Console.WriteLine(tempPieceCoords[0] + " " + tempPieceCoords[1]);
+                        return false;
+                    }
+                    break;
+            }
+            return false;
         }
 
         static void capturePiece(int player, int[] pieceCoords, int[] moveCoords)
@@ -91,24 +131,33 @@ namespace Warcaby
             switch (player)
             {
                 case 1:
-                    if (board[moveCoords[0] - 1, moveCoords[1] + 1] == enemyPlayer || board[moveCoords[0] - 1, moveCoords[1] - 1] == enemyPlayer)
-                    {
-                        Console.WriteLine("Bicie aaa");
+                    bool enemyOnLeft = board[moveCoords[0] - 1, moveCoords[1] + 1] == enemyPlayer;
+                    Console.WriteLine(moveCoords[0] - 1 + " " + moveCoords[1] + 1);
+                    //if (isValidCapture(player, pieceCoords, moveCoords))
+                    //{
                         int[] tempPieceCoords = { pieceCoords[0] - 1, pieceCoords[1] + 1 };
+                        Console.WriteLine("Bicie aaa");
                         Console.WriteLine($"TempPiece: {tempPieceCoords[0]} {tempPieceCoords[1]}");
-                        return isValidMove(player, tempPieceCoords, moveCoords);
-                    }
+                        Console.WriteLine(isValidMove(player, tempPieceCoords, moveCoords, true));
+                        if (isValidMove(player, tempPieceCoords, moveCoords, true))
+                        {
+                            board[tempPieceCoords[0], tempPieceCoords[1]] = 0;
+                        }
+                    //}
                     //Console.WriteLine("Bicie eeee");
                     break;
                 case 2:
-                    if (board[moveCoords[0] + 1, moveCoords[1] + 1] == enemyPlayer || board[moveCoords[0] + 1, moveCoords[1] - 1] == enemyPlayer)
-                    {
-                        int[] tempPieceCoords = { pieceCoords[0] + 1, pieceCoords[1] + 1 };
-                        return isValidMove(player, tempPieceCoords, moveCoords);
-                    }
+                    //if (isValidCapture(player, pieceCoords, moveCoords))
+                    //{
+                        int[] tempPieceCoords2 = { pieceCoords[0] + 1, pieceCoords[1] + 1 };
+                        if(isValidMove(player, tempPieceCoords2, moveCoords, true))
+                        {
+                            board[tempPieceCoords2[0], tempPieceCoords2[1]] = 0;
+                        }
+                    //}
                     break;
             }
-            return true;
+            //return true;
         }
 
         static void playerTurn(int player, int[] pieceCoords, int[] moveCoords)
@@ -117,17 +166,15 @@ namespace Warcaby
             //if (board[moveCoords[0] - 1, moveCoords[1] + 1] == enemyPlayer || board[moveCoords[0] - 1, moveCoords[1] - 1] == enemyPlayer)
             //{
             //    isValidCapture(player, pieceCoords, moveCoords);
-            //}
-            if (board[pieceCoords[0], pieceCoords[1]] != player)
+            //
+            if(isValidCapture(player, pieceCoords, moveCoords))
+                capturePiece(player, pieceCoords, moveCoords);
+            else
             {
-                Console.WriteLine("Niepoprawny ruch (nie twój pionek)");
-                return;
+                Console.WriteLine("Brak bicia");
+                if (!isValidMove(player, pieceCoords, moveCoords, false)) return;
             }
-            if (isValidCapture(player, pieceCoords, moveCoords))
-            {
-                board[pieceCoords[0], pieceCoords[1]] = 0;
-                board[moveCoords[0], moveCoords[1]] = player;
-            } else if(!isValidMove(player, pieceCoords, moveCoords)) return;
+
             board[pieceCoords[0], pieceCoords[1]] = 0;
             board[moveCoords[0], moveCoords[1]] = player;
             Console.Clear();
